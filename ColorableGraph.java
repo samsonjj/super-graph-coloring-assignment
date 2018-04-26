@@ -11,7 +11,7 @@ public class ColorableGraph {
     ArrayList<Vertex> useThisToFindVertexByKey;
     int[] colors;
 
-    public ColorableGraph(int size) {
+    public ColorableGraph(int size, int[] colors) {
 
         // init adjacency list and sorting list
         vertices = new ArrayList<>();
@@ -19,9 +19,12 @@ public class ColorableGraph {
         for(int i = 0; i < size; i++) { vertices.add(new Vertex(i+1)); useThisToFindVertexByKey.add(new Vertex(i+1)); }
 
         // init colors
-        colors = new int[size+1]; // we will use the key to store color, so since keys start at 1, we need size+1 spots if starting at 0
-        Arrays.fill(colors, 0);
+        this.colors = colors;
 
+    }
+
+    public ColorableGraph(int size) {
+        this(size, new int[size+1]); // we will use the key to store color, so since keys start at 1, we need size+1 spots if starting at 0
     }
 
     public Vertex getVertexByKey(int key) {
@@ -38,18 +41,26 @@ public class ColorableGraph {
     }
 
     public int[] initialColorGreedyByDegree() {
-        Arrays.fill(colors, 0);
 
         // Welsh-Powell Algorithm
-        Collections.sort(vertices, (u, v) -> v.adj.size() - u.adj.size());
-        vertices.stream().forEach(System.out::println);
+        ArrayList<Vertex> verticesToColor = new ArrayList<>();
+        for(Vertex v : vertices) {
+            if(colors[v.key] == 0) {
+                verticesToColor.add(v);
+            }
+        }
 
+        // sort the array of verticesToColor
+        Collections.sort(verticesToColor, (u, v) -> v.adj.size() - u.adj.size());
+        verticesToColor.stream().forEach(System.out::println);
+
+        // look for color of each vertex
         boolean[] availableColors = new boolean[vertices.size() + 1];
-        for(int i = 1; i <= vertices.size(); i++) {
+        for(int i = 0; i < verticesToColor.size(); i++) {
 
-            // set available colors
+            // set available colors for current vertex in list
             Arrays.fill(availableColors, true);
-            for(Vertex adjacent : getVertexByKey(i).adj) {
+            for(Vertex adjacent : verticesToColor.get(i).adj) {
                 if(colors[adjacent.key] != 0) availableColors[colors[adjacent.key]] = false;
             }
 
@@ -60,42 +71,11 @@ public class ColorableGraph {
             }
 
             // set color of i to that
-            colors[i] = firstAvailable;
+            colors[verticesToColor.get(i).key] = firstAvailable;
         }
 
         return colors;
     }
-
-    /*public int[] initialColor() {
-        Arrays.fill(colors, 0);
-
-        // Welsh-Powell Algorithm
-        Arrays.sort(adjacencyList, (a1, a2) -> a2.size() - a1.size());
-        Arrays.stream(adjacencyList).forEach(System.out::println);
-
-        boolean[] availableColors = new boolean[adjacencyList.length + 1];
-        for(int i = 0; i < adjacencyList.length; i++) {
-
-            // reset available colors
-            Arrays.fill(availableColors, true);
-
-            // set available colors
-            for(Integer adjacent : adjacencyList[i]) {
-                if(colors[adjacent] != 0) availableColors[colors[adjacent]] = false;
-            }
-
-            // find first available color
-            int firstAvailable = 1;
-            while(!availableColors[firstAvailable]) {
-                firstAvailable++;
-            }
-
-            // set color of i to that
-            colors[i] = firstAvailable;
-        }
-
-        return colors;
-    }*/
 
     public int[] fixBySwap() {
 
@@ -120,10 +100,16 @@ public class ColorableGraph {
                 if(colors[vertices.get(i).key] > colors[currentVertex.key]) currentVertex = vertices.get(i);
             }
 
-            System.out.println(currentVertex.key);
+            //System.out.println(currentVertex.key);
+            /*for(Vertex v : currentVertex.adj) {
+                System.out.print(v.key + " ");
+            }
+            System.out.println();*/
 
             // attempt to swap max vertex around until we can reduce, or count goes over 1000
+            count = 0;
             while (count < 1000) {
+                //System.out.println("inside");
 
                 // find available colors for current vertex
                 Arrays.fill(availableColorsCurrent, true);
@@ -131,10 +117,12 @@ public class ColorableGraph {
                     if (colors[adjacent.key] != 0) availableColorsCurrent[colors[adjacent.key]] = false;
                 }
                 // if a lower color is available, switch to it and break
+                doneWithThisMaxVertex = false;
                 for (int i = 1; i < colors[currentVertex.key]; i++) {
                     if (availableColorsCurrent[i] == true) {
                         colors[currentVertex.key] = i;
                         System.out.println("reducing!");
+                        System.out.println("new color: " + colors[currentVertex.key]);
                         doneWithThisMaxVertex = true;
                         break;
                     }
@@ -144,7 +132,14 @@ public class ColorableGraph {
                 // okay this part will be the whole rest of the method
                 // try to swap with one random next vertex
                 nextColorAvailable = true;
-                Vertex nextVertex = currentVertex.adj.get(random.nextInt(currentVertex.adj.size()));
+                int adjIndex = random.nextInt(currentVertex.adj.size());
+                Vertex nextVertex = currentVertex.adj.get(adjIndex);
+                if(nextVertex.key == 34) System.out.println("found 34");
+                /*System.out.println(adjIndex);
+                for(Vertex v : currentVertex.adj) {
+                    System.out.print(v.key + " ");
+                }
+                System.out.println();*/
                 for(Vertex v : currentVertex.adj) {
                     if(v != nextVertex && colors[v.key] == colors[nextVertex.key]) {
                         nextColorAvailable = false;
@@ -161,10 +156,10 @@ public class ColorableGraph {
                     }
                     if(nextColorAvailable) {
                         // now both slots are available for swapping
-                        System.out.println("Swapping!");
+                        System.out.println("Swapping: " + currentVertex.key + " color: " + colors[currentVertex.key] + "with: " + nextVertex.key + " color: " + colors[nextVertex.key]);
                         int temp = colors[currentVertex.key];
                         colors[currentVertex.key] = colors[nextVertex.key];
-                        colors[nextVertex.key] = colors[currentVertex.key];
+                        colors[nextVertex.key] = temp;
 
                         currentVertex = nextVertex;
                     }
