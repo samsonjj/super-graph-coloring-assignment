@@ -6,6 +6,7 @@ public class Main {
 
     public static void main(String[] args) {
         System.out.println("Hello, World!");
+        takeStandardInput();
 
         /*ColorableGraph g = new ColorableGraph(9, new int[] {0, 2, 0, 0, 0, 0, 0, 0, 0, 0});
 
@@ -29,7 +30,7 @@ public class Main {
         g.addEdge(8, 9);
         */
 
-        ColorableGraph g = generateSudoku();
+        /*ColorableGraph g = generateSudoku();
 
         int[] colors = g.initialColorGreedyByDegree();
         colors = g.fixBySwap();
@@ -48,6 +49,7 @@ public class Main {
         System.out.println();
 
         return;
+        */
     }
 
     public static ColorableGraph generateSudoku() {
@@ -98,5 +100,55 @@ public class Main {
         }
 
         return cg;
+    }
+
+    public static void takeStandardInput() {
+        int n = 0;
+        int m = 0;
+
+        Scanner in = new Scanner(System.in);
+
+        n = in.nextInt();
+        m = in.nextInt();
+
+        ColorableGraph cg = new ColorableGraph(n);
+
+        for(int i = 0; i < m; i++) {
+            cg.addEdge(in.nextInt(), in.nextInt());
+        }
+
+        int[] colors = new int[n+1];
+        for(int i = 1; i < colors.length; i++) {
+            colors[i] = in.nextInt();
+        }
+        cg.setColors(colors);
+
+        int[] newColors = cg.initialColorGreedyByDegree();
+        newColors = cg.fixBySwap();
+
+        for(int color : colors) {
+            System.out.print(color + " ");
+        }
+        System.out.println();
+        for(int color : newColors) {
+            System.out.print(color + " ");
+        }
+        System.out.println();
+
+        for(int i = 1; i < colors.length; i++) {
+            if(colors[i] != newColors[i] && colors[i] != 0) {
+                System.out.println("Initial color change detected, index " + i);
+            }
+        }
+
+        for (int i = 0; i < 81; i+=9) {
+            for (int j = 0; j < 9; j++) {
+                System.out.printf("%2d "+ (j%3==2 && j!=8 ? "|" : ""), newColors[i + j + 1]);
+            }
+            System.out.println();
+            if(i/9%3==2 && i/9!=8) {
+                System.out.println("-----------------------------");
+            }
+        }
     }
 }

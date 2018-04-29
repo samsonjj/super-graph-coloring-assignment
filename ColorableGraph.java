@@ -29,6 +29,14 @@ public class ColorableGraph {
 
     }
 
+    public void setColors(int[] colors) {
+        this.colors = Arrays.copyOf(colors, colors.length);
+
+        for(int i = 1; i < preColored.length; i++) {
+            preColored[i] = (this.colors[i] != 0);
+        }
+    }
+
     public ColorableGraph(int size) {
         this(size, new int[size+1]); // we will use the key to store color, so since keys start at 1, we need size+1 spots if starting at 0
     }
@@ -51,7 +59,7 @@ public class ColorableGraph {
         // Welsh-Powell Algorithm
         ArrayList<Vertex> verticesToColor = new ArrayList<>();
         for(Vertex v : vertices) {
-            if(colors[v.key] == 0) {
+            if(!preColored[v.key]) {
                 verticesToColor.add(v);
             }
         }
@@ -101,7 +109,7 @@ public class ColorableGraph {
         int sometimesDoRandom = 0;
         // repeatedly find max vertex, and reduce, until out of time
         while(true) {
-            if(System.currentTimeMillis() - startTime > 20000) break;
+            if(System.currentTimeMillis() - startTime > 1000) break;
 
             //System.out.println(preColored[21] + " color: " + colors[21]);
 
